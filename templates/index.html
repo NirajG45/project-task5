@@ -6,29 +6,32 @@
   <title>Weather App</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
   <div class="cloud"></div>
 
   <div class="container">
-    <h1>🌦 Weather Checker</h1>
+    <h1><i class="fas fa-cloud-sun"></i> Weather Checker</h1>
     <div class="datetime">
       <span id="currentDateTime"></span>
     </div>
     <form method="post">
       <input type="text" name="city" placeholder="Enter city name" required />
-      <button type="submit">Get Weather</button>
-      <button type="button" onclick="getCurrentLocation()">📍 Use My Location</button>
+      <button type="submit"><i class="fas fa-search-location"></i> Get Weather</button>
+      <button type="button" onclick="getCurrentLocation()">
+        <i class="fas fa-map-marker-alt"></i> Use My Location
+      </button>
     </form>
 
     {% if weather %}
       <h2><img src="{{ weather.flag }}"> Weather in {{ weather.city }}, {{ weather.country }}</h2>
       <p><strong>{{ weather.description }}</strong></p>
-      <p>🌡 Temp: {{ weather.temperature }}°C (Feels like: {{ weather.feels_like }}°C)</p>
-      <p>💧 Humidity: {{ weather.humidity }}%</p>
-      <p>🧭 Wind: {{ weather.wind }} m/s</p>
-      <p>📊 Pressure: {{ weather.pressure }} hPa</p>
-      <p>🕒 Last updated: {{ weather.updated }}</p>
+      <p><i class="fas fa-thermometer-half"></i> Temp: {{ weather.temperature }}°C (Feels like: {{ weather.feels_like }}°C)</p>
+      <p><i class="fas fa-tint"></i> Humidity: {{ weather.humidity }}%</p>
+      <p><i class="fas fa-wind"></i> Wind: {{ weather.wind }} m/s</p>
+      <p><i class="fas fa-gauge-high"></i> Pressure: {{ weather.pressure }} hPa</p>
+      <p><i class="fas fa-clock"></i> Last updated: {{ weather.updated }}</p>
     {% endif %}
 
     {% if chart_data %}
@@ -36,7 +39,7 @@
     {% endif %}
 
     {% if history %}
-      <h3>Recent Searches</h3>
+      <h3><i class="fas fa-history"></i> Recent Searches</h3>
       <ul>
         {% for item in history %}
           <li>{{ item }}</li>
@@ -48,15 +51,28 @@
       <p class="error">{{ error }}</p>
     {% endif %}
 
-    <button onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
+    <button onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Toggle Dark Mode</button>
   </div>
 
   <script src="{{ url_for('static', filename='script.js') }}"></script>
-  <script>
-    const labels = {{ chart_data | map(attribute='time') | list | tojson | safe }};
-    const data = {{ chart_data | map(attribute='temp') | list | tojson | safe }};
 
-    if (labels && data) {
+  <!-- ✅ Final embedded script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const now = new Date();
+      const options = {
+        weekday: 'long', year: 'numeric', month: 'long',
+        day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+      };
+      document.getElementById("currentDateTime").textContent = now.toLocaleString('en-US', options);
+      setInterval(() => {
+        document.getElementById("currentDateTime").textContent = new Date().toLocaleString('en-US', options);
+      }, 1000);
+
+      {% if chart_data %}
+      const labels = JSON.parse('{{ chart_data | map(attribute="time") | list | tojson | safe }}');
+      const data = JSON.parse('{{ chart_data | map(attribute="temp") | list | tojson | safe }}');
+
       const ctx = document.getElementById("weatherChart").getContext("2d");
       new Chart(ctx, {
         type: "line",
@@ -86,11 +102,8 @@
           }
         }
       });
-    }
-
-    setInterval(() => {
-      document.getElementById("currentDateTime").textContent = new Date().toLocaleString('en-US');
-    }, 1000);
+      {% endif %}
+    });
   </script>
 </body>
 </html>
