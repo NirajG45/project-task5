@@ -31,61 +31,95 @@
     {% if chart_data %}
       <canvas id="weatherChart"></canvas>
       <script>
-        document.addEventListener("DOMContentLoaded", () => {
-          const now = new Date();
-          const options = {
-            weekday: 'long', year: 'numeric', month: 'long',
-            day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
-          };
-          document.getElementById("currentDateTime").textContent = now.toLocaleString('en-US', options);
-          setInterval(() => {
-            document.getElementById("currentDateTime").textContent = new Date().toLocaleString('en-US', options);
-          }, 1000);
+  document.addEventListener("DOMContentLoaded", () => {
+    const now = new Date();
+    const options = {
+      weekday: 'long', year: 'numeric', month: 'long',
+      day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
+    };
+    document.getElementById("currentDateTime").textContent = now.toLocaleString('en-US', options);
+    setInterval(() => {
+      document.getElementById("currentDateTime").textContent = new Date().toLocaleString('en-US', options);
+    }, 1000);
 
-          const labels = JSON.parse('{{ chart_data | map(attribute="time") | list | tojson | safe }}');
-          const data = JSON.parse('{{ chart_data | map(attribute="temp") | list | tojson | safe }}');
+    const labels = JSON.parse('{{ chart_data | map(attribute="time") | list | tojson | safe }}')
+      .map(label => label.split(" ")[1].substring(0,5)); // format as HH:MM
+    const data = JSON.parse('{{ chart_data | map(attribute="temp") | list | tojson | safe }}');
 
-          const ctx = document.getElementById("weatherChart").getContext("2d");
-          new Chart(ctx, {
-            type: "line",
-            data: {
-              labels,
-              datasets: [{
-                label: "Hourly Temperature (°C)",
-                data,
-                borderColor: "rgba(52,152,219,1)",
-                backgroundColor: "rgba(52,152,219,0.2)",
-                borderWidth: 2,
-                tension: 0.4,
-                pointBackgroundColor: "white",
-                fill: true
-              }]
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: {
-                  labels: {
-                    color: '#fff'
-                  }
-                }
-              },
-              scales: {
-                x: {
-                  ticks: {
-                    color: '#ccc'
-                  }
-                },
-                y: {
-                  ticks: {
-                    color: '#ccc'
-                  }
-                }
-              }
+    const ctx = document.getElementById("weatherChart").getContext("2d");
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, "rgba(52,152,219,0.4)");
+    gradient.addColorStop(1, "rgba(52,152,219,0)");
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Hourly Temperature (°C)",
+          data,
+          fill: true,
+          backgroundColor: gradient,
+          borderColor: "rgba(52,152,219,1)",
+          borderWidth: 3,
+          pointBackgroundColor: "#fff",
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          tension: 0.45
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            labels: {
+              color: '#ffffff',
+              font: { size: 14 }
             }
-          });
-        });
-      </script>
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: context => ` ${context.dataset.label}: ${context.parsed.y}°C`
+            }
+          }
+        },
+        interaction: {
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false
+        },
+        scales: {
+          x: {
+            grid: {
+              color: "rgba(255,255,255,0.1)",
+              borderColor: "#999"
+            },
+            ticks: {
+              color: "#eee",
+              font: { size: 12 }
+            }
+          },
+          y: {
+            grid: {
+              color: "rgba(255,255,255,0.1)",
+              borderColor: "#999"
+            },
+            ticks: {
+              color: "#eee",
+              font: { size: 12 },
+              callback: value => `${value}°C`
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
     {% endif %}
 
     {% if error %}
