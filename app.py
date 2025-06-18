@@ -3,7 +3,7 @@ import requests, datetime
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
-API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY'
+API_KEY = 'f82d429e6a4cb8fecadd760ca2c4a2ed'
 
 def get_weather_data(city=None, lat=None, lon=None):
     if city:
