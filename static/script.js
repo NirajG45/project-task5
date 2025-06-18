@@ -1,4 +1,3 @@
-
 function getWeather() {
   const city = document.getElementById('cityInput').value;
   fetch('/weather', {
